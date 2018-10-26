@@ -4,7 +4,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.chineseall.config.WebSocketServer;
 import com.chineseall.dao.FileUploadServiceDao;
+import com.chineseall.entity.ImageBaseInfo;
 import com.chineseall.entity.UploadFileContext;
+import com.chineseall.entity.UploadFileInfo;
 import com.chineseall.service.FileUploadService;
 import com.chineseall.service.OcrHandleService;
 import com.chineseall.util.api.BaiduApiUtil;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 import sun.misc.BASE64Encoder;
 
@@ -90,9 +93,9 @@ public class OcrHandleServiceImpl implements OcrHandleService {
         return retMsg;
     }
 
-    public RetMsg imageRecognitionDemo(Map<String, Object> imageInfo, String imagePath, String imageId) {
+    public RetMsg imageRecognitionDemo(ImageBaseInfo imageInfo, String imagePath, String imageId) {
         RetMsg<Map> retMsg = new RetMsg<>();
-        JSONArray imageOrdinate = JSONArray.parseArray(imageInfo.get("coordinates").toString());
+        JSONArray imageOrdinate = JSONArray.parseArray(imageInfo.getCoordinate().toString());
         List<ImageOrdinate> imageOrdinates = imageOrdinate.toJavaList(ImageOrdinate.class);
         if (imageOrdinates == null || imageOrdinates.size() < 0) {
             retMsg.setCode(MessageCode.ImageRecognitionFail.getCode());
@@ -288,26 +291,58 @@ public class OcrHandleServiceImpl implements OcrHandleService {
     }
 
     @Override
-    public RetMsg imageDemo(MultipartFile file, Map<String, Object> imageInfo) {
+    public RetMsg imageDemo(MultipartFile file, ImageBaseInfo imageInfo) throws IOException {
         RetMsg retMsg = new RetMsg();
-        if (file.getContentType() != null && !file.getContentType().contains("image")) {
+        String containsKey = "image";
+        if (file.getContentType() != null && !file.getContentType().contains(containsKey)) {
             retMsg.setCode(MessageCode.ImageFormatError.getCode());
             retMsg.setMsg(MessageCode.ImageFormatError.getDescription());
             return retMsg;
         }
 
-        Map<String, Object> map = fileUploadService.saveOcrImage(file, imageInfo);
-
-        if (MessageCode.ImageUploadFail.getCode() == (int) map.get("code")) {
-            retMsg.fail(MessageCode.ImageUploadFail.getDescription());
+        UploadFileInfo fileInfo = imageValid(file);
+        String fileId = fileInfo.getFileId();
+        if (StringUtils.isNotEmpty(fileId)) {
+            Map<String, String> map = new HashMap<>();
+            String context = fileUploadServiceDao.queryImageInfoByFileId(fileId);
+            if (StringUtils.isNotEmpty(context)) {
+                map.put("context", context);
+                map.put("imageId", fileId);
+                retMsg.setData(map);
+                retMsg.setCode(MessageCode.ImageRecognitionSuccess.getCode());
+                retMsg.setMsg(MessageCode.ImageRecognitionSuccess.getDescription());
+            } else {
+                retMsg = imageRecognitionDemo(imageInfo, fileInfo.getFileUploadPath(), fileId);
+            }
+            return retMsg;
         } else {
-            String imagePath = (String) map.get("filePath");
-            String imageId = (String) map.get("imageId");
-            retMsg = imageRecognitionDemo(imageInfo, imagePath, imageId);
+            Map<String, Object> map = fileUploadService.saveOcrImage(file, imageInfo);
+
+            if (MessageCode.ImageUploadFail.getCode() == (int) map.get("code")) {
+                retMsg.fail(MessageCode.ImageUploadFail.getDescription());
+            } else {
+                String imagePath = (String) map.get("filePath");
+                String imageId = (String) map.get("imageId");
+                retMsg = imageRecognitionDemo(imageInfo, imagePath, imageId);
+            }
+            return retMsg;
         }
-        return retMsg;
     }
 
+
+    private UploadFileInfo imageValid(MultipartFile file) {
+        try {
+            String fileHash = DigestUtils.md5DigestAsHex(file.getInputStream());
+            UploadFileInfo uploadFileInfo = fileUploadServiceDao.queryByFilehash(fileHash);
+            if (uploadFileInfo != null) {
+                return uploadFileInfo;
+            }
+            return new UploadFileInfo();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new UploadFileInfo();
+    }
 
     private int[] detectLines(String resultImgPath, String url, int start, int end) {
         int[] axes = {};

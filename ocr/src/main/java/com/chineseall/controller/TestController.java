@@ -1,6 +1,6 @@
 package com.chineseall.controller;
 
-import com.chineseall.util.model.ResultUtil;
+import com.chineseall.util.model.RetMsg;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +20,9 @@ public class TestController {
 
     @RequestMapping("/test")
     public ResponseEntity test() {
-        return ResponseEntity.ok(ResultUtil.success("哈哈"));
+        RetMsg retMsg = new RetMsg();
+        retMsg.setMsg("test");
+        return ResponseEntity.ok(retMsg);
     }
 
     @RequestMapping("/testRedis")
@@ -31,7 +33,6 @@ public class TestController {
         } else {
             template.delete("shabao");
         }
-
         return ResponseEntity.ok("hh");
     }
 

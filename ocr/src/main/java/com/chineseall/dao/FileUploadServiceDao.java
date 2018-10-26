@@ -24,7 +24,11 @@ public interface FileUploadServiceDao {
 
     UploadFileContext queryImageInfoById(int id);
 
+    String queryImageInfoByFileId(String fileId);
+
     Integer isExistImageInfo(String imageId);
 
     void updateImageInfo(UploadFileContext info);
+
+    UploadFileInfo queryByFilehash(String hash);
 }

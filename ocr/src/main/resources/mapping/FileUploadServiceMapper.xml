@@ -2,9 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.chineseall.dao.FileUploadServiceDao">
     <insert id="insert" parameterType="com.chineseall.entity.UploadFileInfo">
-        INSERT INTO ocr_upload_file_info (fileName,fileUploadPath,fileSize,fileSaveName,fileId) VALUES
+        INSERT INTO ocr_upload_file_info (fileName,fileUploadPath,fileSize,fileSaveName,fileId,fileHash) VALUES
         (#{fileName,jdbcType=VARCHAR},#{fileUploadPath,jdbcType=VARCHAR},#{fileSize,jdbcType=INTEGER},#{fileSaveName,
-        jdbcType=VARCHAR},#{fileId,jdbcType=VARCHAR})
+        jdbcType=VARCHAR},#{fileId,jdbcType=VARCHAR},#{fileHash,jdbcType=VARCHAR})
     </insert>
     <select id="queryById" parameterType="java.lang.Integer" resultType="com.chineseall.entity.UploadFileInfo">
         SELECT * FROM ocr_upload_file_info WHERE id = #{id,jdbcType=INTEGER}
@@ -28,4 +28,10 @@
         UPDATE ocr_upload_file_context SET context = #{context,jdbcType=VARCHAR},coordinate =
         #{coordinate,jdbcType=VARCHAR},updateTime = SYSDATE() WHERE fileId = #{fileId,jdbcType=VARCHAR}
     </update>
+    <select id="queryByFilehash" parameterType="java.lang.String" resultType="com.chineseall.entity.UploadFileInfo">
+        SELECT id,fileId,fileHash,fileUploadPath FROM ocr_upload_file_info WHERE fileHash = #{fileHash,jdbcType=VARCHAR}
+    </select>
+    <select id="queryImageInfoByFileId" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT context FROM ocr_upload_file_context WHERE fileId = #{fileId}
+    </select>
 </mapper>

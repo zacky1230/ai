@@ -1,10 +1,12 @@
 package com.chineseall.service;
 
 
+import com.chineseall.entity.ImageBaseInfo;
 import com.chineseall.entity.UploadFileContext;
 import com.chineseall.util.model.RetMsg;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -25,5 +27,5 @@ public interface OcrHandleService {
 
     RetMsg queryImageInfo(int id);
 
-    RetMsg imageDemo(MultipartFile file, Map<String, Object> imageInfo);
+    RetMsg imageDemo(MultipartFile file, ImageBaseInfo imageInfo) throws IOException;
 }

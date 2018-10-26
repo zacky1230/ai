@@ -1,6 +1,7 @@
 package com.chineseall.service.impl;
 
 import com.chineseall.dao.FileUploadServiceDao;
+import com.chineseall.entity.ImageBaseInfo;
 import com.chineseall.entity.UploadFileInfo;
 import com.chineseall.service.FileUploadService;
 import com.chineseall.util.base.image.ImageMagickUtil;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -68,10 +70,10 @@ public class FileUploadServiceImpl implements FileUploadService {
     }
 
     @Override
-    public Map<String, Object> saveOcrImage(MultipartFile file, Map<String, Object> imageInfo) {
+    public Map<String, Object> saveOcrImage(MultipartFile file, ImageBaseInfo imageInfo) {
         Map<String, Object> retMap = new HashMap<>();
-        double width = (double) imageInfo.get("width");
-        double height = (double) imageInfo.get("height");
+        double width = imageInfo.getWidth();
+        double height = imageInfo.getHeigth();
         String fileName = file.getOriginalFilename();
 
         String todayString = TimeUtil.getTodayToString() + File.separator + "demo";
@@ -92,13 +94,6 @@ public class FileUploadServiceImpl implements FileUploadService {
             return retMap;
         }
     }
-
-
-    @Override
-    public String getRealFilePath(String fileName) {
-        return fileUploadServiceDao.queryByFileSaveName(fileName);
-    }
-
 
     private boolean saveImage(MultipartFile file, String saveFileName, String fileName, String imageId, String fileDir,
                               double width, double height) {
@@ -128,7 +123,9 @@ public class FileUploadServiceImpl implements FileUploadService {
 
             ImageMagickUtil.imageZoomInPng(originalPath, handlePath, imageWidth);
 
-            saveFileInfoToDB(fileName, saveFileName, handlePath, size, imageId);
+            String fileHash = DigestUtils.md5DigestAsHex(file.getInputStream());
+
+            saveFileInfoToDB(fileName, saveFileName, handlePath, size, imageId, fileHash);
 
             return true;
         } catch (IllegalStateException e) {
@@ -146,13 +143,15 @@ public class FileUploadServiceImpl implements FileUploadService {
         }
     }
 
-    private void saveFileInfoToDB(String fileName, String saveFileName, String fileUploadPath, int size, String imageId) {
+    private void saveFileInfoToDB(String fileName, String saveFileName, String fileUploadPath, int size, String
+            imageId, String fileHash) {
         UploadFileInfo uploadFileInfo = new UploadFileInfo();
         uploadFileInfo.setFileName(fileName);
         uploadFileInfo.setFileSaveName(saveFileName);
         uploadFileInfo.setFileUploadPath(fileUploadPath);
         uploadFileInfo.setFileSize(size);
         uploadFileInfo.setFileId(imageId);
+        uploadFileInfo.setFileHash(fileHash);
         fileUploadServiceDao.insert(uploadFileInfo);
     }
 
@@ -206,7 +205,8 @@ public class FileUploadServiceImpl implements FileUploadService {
 
         try {
             file.transferTo(dest);
-            saveFileInfoToDB(fileName, saveFileName, dest.getPath(), size, fileId);
+            String fileHash = DigestUtils.md5DigestAsHex(file.getInputStream());
+            saveFileInfoToDB(fileName, saveFileName, dest.getPath(), size, fileId, fileHash);
             return true;
         } catch (IllegalStateException e) {
             e.printStackTrace();

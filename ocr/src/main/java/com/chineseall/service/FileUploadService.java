@@ -1,5 +1,6 @@
 package com.chineseall.service;
 
+import com.chineseall.entity.ImageBaseInfo;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
@@ -9,15 +10,6 @@ import java.util.Map;
  * Created by zacky on 12:06.
  */
 public interface FileUploadService {
-
-    /**
-     * get file real path by filename
-     *
-     * @param fileName String
-     * @return String
-     */
-    String getRealFilePath(String fileName);
-
 
     /**
      * save image by ration
@@ -37,5 +29,5 @@ public interface FileUploadService {
      * @param imageInfo imageInfo
      * @return Map
      */
-    Map<String, Object> saveOcrImage(MultipartFile file, Map<String, Object> imageInfo);
+    Map<String, Object> saveOcrImage(MultipartFile file, ImageBaseInfo imageInfo);
 }

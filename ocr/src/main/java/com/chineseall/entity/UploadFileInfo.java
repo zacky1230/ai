@@ -12,6 +12,7 @@ public class UploadFileInfo implements Serializable {
     Integer id;
     String fileName;
     String fileId;
+    String fileHash;
     String fileUploadPath;
     Integer fileSize;
     String fileSaveName;
@@ -33,6 +34,14 @@ public class UploadFileInfo implements Serializable {
 
     public void setFileId(String fileId) {
         this.fileId = fileId;
+    }
+
+    public String getFileHash() {
+        return fileHash;
+    }
+
+    public void setFileHash(String fileHash) {
+        this.fileHash = fileHash;
     }
 
     public String getFileName() {

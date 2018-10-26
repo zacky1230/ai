@@ -1,19 +1,20 @@
 package com.chineseall.controller;
 
 import com.alibaba.fastjson.JSONArray;
+import com.chineseall.entity.ImageBaseInfo;
 import com.chineseall.entity.UploadFileContext;
 import com.chineseall.service.OcrHandleService;
 import com.chineseall.util.base.string.StringUtils;
 import com.chineseall.util.model.MessageCode;
 import com.chineseall.util.model.RetMsg;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -22,9 +23,9 @@ import java.util.Map;
  * Created by zacky on 13:47.
  */
 @Controller
-public class OcrHandleController {
+public class OcrHandleController extends BaseController {
 
-    @Autowired
+    @Resource
     private OcrHandleService ocrHandleService;
 
     /**
@@ -35,8 +36,8 @@ public class OcrHandleController {
     public ResponseEntity imageUpload(@RequestParam("imgName") MultipartFile file, HttpServletRequest request,
                                       @PathVariable String type) {
 
-        double width = Double.parseDouble(request.getParameter("width"));
-        double height = Double.parseDouble(request.getParameter("height"));
+        double width = super.parseHttpDoubleVauleByKey(request, "width");
+        double height = super.parseHttpDoubleVauleByKey(request, "height");
         RetMsg retMsg = ocrHandleService.imageUpload(file, type, width, height);
         return ResponseEntity.ok(retMsg);
     }
@@ -71,10 +72,10 @@ public class OcrHandleController {
     public ResponseEntity saveImageInfo(@PathVariable String imageId, @RequestBody Map<String, Object> map) {
         UploadFileContext info = new UploadFileContext();
         String context = (String) map.get("context");
-        LinkedHashMap<String, Object> coordinates = (LinkedHashMap) map.get("coordinate");
+        LinkedHashMap coordinates = (LinkedHashMap) map.get("coordinate");
         String coordinate = JSONArray.toJSONString(coordinates);
         RetMsg retMsg = new RetMsg();
-        if (StringUtils.isEmpty(context) || StringUtils.isEmpty(coordinate.toString()) || StringUtils.isEmpty(imageId)) {
+        if (StringUtils.isEmpty(context) || StringUtils.isEmpty(coordinate) || StringUtils.isEmpty(imageId)) {
             retMsg.setMsg(MessageCode.ParamIsError.getDescription());
             retMsg.setCode(MessageCode.ParamIsError.getCode());
             return ResponseEntity.ok(retMsg);
@@ -87,7 +88,9 @@ public class OcrHandleController {
         return ResponseEntity.ok(retMsg);
     }
 
-
+    /**
+     * 演示
+     */
     @RequestMapping(value = "/ocr/query/{id}")
     @ResponseBody
     public ResponseEntity queryImageInfo(@PathVariable int id) {
@@ -97,21 +100,16 @@ public class OcrHandleController {
 
     /**
      * 测试版本
-     *
-     * @param file
-     * @param request
-     * @return
      */
     @RequestMapping(value = "/ocr/demo")
     @ResponseBody
-    public ResponseEntity demo(@RequestParam("imgName") MultipartFile file, HttpServletRequest request) {
-        String coordinates = request.getParameter("coordinate");
-        double width = Double.parseDouble(request.getParameter("width"));
-        double height = Double.parseDouble(request.getParameter("height"));
-        Map<String, Object> imageInfo = new HashMap<>();
-        imageInfo.put("coordinates", coordinates);
-        imageInfo.put("width", width);
-        imageInfo.put("height", height);
+    public ResponseEntity demo(@RequestParam("imgName") MultipartFile file, HttpServletRequest request) throws IOException {
+        String coordinates = super.parseHttpStringVauleByKey(request, "coordinate");
+        double width = super.parseHttpDoubleVauleByKey(request, "width");
+        double height = super.parseHttpDoubleVauleByKey(request, "height");
+
+        ImageBaseInfo imageInfo = new ImageBaseInfo(width, height, coordinates);
+
         RetMsg retMsg = ocrHandleService.imageDemo(file, imageInfo);
         return ResponseEntity.ok(retMsg);
     }

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.chineseall.dao.FileUploadServiceDao">
+    <insert id="insert" parameterType="com.chineseall.entity.UploadFileInfo">
+        INSERT INTO ocr_upload_file_info (fileName,fileUploadPath,fileSize,fileSaveName,fileId) VALUES
+        (#{fileName,jdbcType=VARCHAR},#{fileUploadPath,jdbcType=VARCHAR},#{fileSize,jdbcType=INTEGER},#{fileSaveName,
+        jdbcType=VARCHAR},#{fileId,jdbcType=VARCHAR})
+    </insert>
+    <select id="queryById" parameterType="java.lang.Integer" resultType="com.chineseall.entity.UploadFileInfo">
+        SELECT * FROM ocr_upload_file_info WHERE id = #{id,jdbcType=INTEGER}
+    </select>
+    <select id="queryByFileSaveName" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT fileUploadPath FROM ocr_upload_file_info WHERE fileSaveName = #{fileName,jdbcType=VARCHAR}
+    </select>
+    <insert id="addImageInfo" parameterType="com.chineseall.entity.UploadFileContext">
+        INSERT INTO ocr_upload_file_context (fileId,context,coordinate) VALUES
+        (#{fileId,jdbcType=VARCHAR},#{context,jdbcType=VARCHAR},#{coordinate,jdbcType=VARCHAR})
+    </insert>
+    <select id="queryImageInfoById" parameterType="java.lang.Integer"
+            resultType="com.chineseall.entity.UploadFileContext">
+        SELECT  a.context,b.fileUploadPath as filePath FROM ocr_upload_file_context a LEFT JOIN ocr_upload_file_info b
+        ON a.fileId = b.fileId WHERE b.id = #{id,jdbcType=INTEGER};
+    </select>
+    <select id="isExistImageInfo" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM  ocr_upload_file_context WHERE fileId = #{imageId,jdbcType=VARCHAR}
+    </select>
+    <update id="updateImageInfo" parameterType="com.chineseall.entity.UploadFileContext">
+        UPDATE ocr_upload_file_context SET context = #{context,jdbcType=VARCHAR},coordinate =
+        #{coordinate,jdbcType=VARCHAR},updateTime = SYSDATE() WHERE fileId = #{fileId,jdbcType=VARCHAR}
+    </update>
+</mapper>

@@ -117,13 +117,13 @@ public class FileUploadServiceImpl implements FileUploadService {
         }
 
         try {
+            String fileHash = DigestUtils.md5DigestAsHex(file.getInputStream());
+
             file.transferTo(dest);
 
             Integer imageWidth = Integer.parseInt(new java.text.DecimalFormat("0").format(width));
 
             ImageMagickUtil.imageZoomInPng(originalPath, handlePath, imageWidth);
-
-            String fileHash = DigestUtils.md5DigestAsHex(file.getInputStream());
 
             saveFileInfoToDB(fileName, saveFileName, handlePath, size, imageId, fileHash);
 

@@ -2,6 +2,7 @@ package com.chineseall.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.chineseall.api.BaiduApiUtil;
 import com.chineseall.config.WebSocketServer;
 import com.chineseall.dao.FileUploadServiceDao;
 import com.chineseall.entity.ImageBaseInfo;
@@ -9,7 +10,6 @@ import com.chineseall.entity.UploadFileContext;
 import com.chineseall.entity.UploadFileInfo;
 import com.chineseall.service.FileUploadService;
 import com.chineseall.service.OcrHandleService;
-import com.chineseall.util.api.BaiduApiUtil;
 import com.chineseall.util.base.bean.BeanUtil;
 import com.chineseall.util.base.file.FileUtil;
 import com.chineseall.util.base.httpclient.HttpClientUtil;
@@ -61,6 +61,12 @@ public class OcrHandleServiceImpl implements OcrHandleService {
 
     @Value("${cv.horizon.line.detect}")
     private String detectHorizonLine;
+
+    @Value("${clientId}")
+    private String clientId;
+
+    @Value("${clientSecret}")
+    private String clientSecret;
 
     @Override
     public RetMsg ocrImageHandle(Map<String, Object> map) {
@@ -169,12 +175,12 @@ public class OcrHandleServiceImpl implements OcrHandleService {
             Collections.reverse(images);
 
             String accessToken;
-            Object accessTokenRedis = redisTemplate.opsForValue().get("ai_ocr_access_token");
+            Object accessTokenRedis = redisTemplate.opsForValue().get("ai_ocr_access_token" + clientId);
             if (accessTokenRedis != null) {
                 accessToken = (String) accessTokenRedis;
             } else {
-                accessToken = BaiduApiUtil.accessToken();
-                redisTemplate.opsForValue().set("ai_ocr_access_token", accessToken, 24, TimeUnit.DAYS);
+                accessToken = BaiduApiUtil.accessToken(clientId, clientSecret);
+                redisTemplate.opsForValue().set("ai_ocr_access_token" + clientId, accessToken, 24, TimeUnit.DAYS);
             }
             String fileName = FileUtil.getFileName(imagePath);
             String extension = FileUtil.getSuffix(fileName);
@@ -194,7 +200,7 @@ public class OcrHandleServiceImpl implements OcrHandleService {
                 if (i == images.size() - 1) {
                     sb.append(result);
                 } else {
-                    sb.append(result).append("\r\n");
+                    sb.append(result).append("\n");
                 }
             }
             logger.info(String.format("Ending %s recognition.", imagePath));
@@ -337,7 +343,6 @@ public class OcrHandleServiceImpl implements OcrHandleService {
             if (uploadFileInfo != null) {
                 return uploadFileInfo;
             }
-            return new UploadFileInfo();
         } catch (IOException e) {
             e.printStackTrace();
         }

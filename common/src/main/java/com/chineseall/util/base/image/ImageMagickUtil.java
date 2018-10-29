@@ -15,9 +15,9 @@ import java.io.IOException;
 public class ImageMagickUtil {
     private static Logger logger = LoggerFactory.getLogger(ImageMagickUtil.class);
 
-    public static void main(String[] args) throws InterruptedException, IOException, IM4JavaException {
+    /*public static void main(String[] args) throws InterruptedException, IOException, IM4JavaException {
         ImageMagickUtil.imageZoomInPng("/Volumes/Transcend/Work/upload/2018-10-23/1/8b9a5cceb8f04a9e930cd1bff02e4628.png", "/Volumes/Transcend/Work/upload/2018-10-23/1/_handle.png", 800);
-    }
+    }*/
 
     /**
      * Use convert api to make png to tif format.

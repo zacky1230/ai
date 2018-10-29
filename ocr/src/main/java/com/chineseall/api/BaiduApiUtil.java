@@ -1,8 +1,8 @@
-package com.chineseall.util.api;
+package com.chineseall.api;
 
-import com.chineseall.util.base.base64.Base64Util;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.chineseall.util.base.base64.Base64Util;
 import com.chineseall.util.base.file.FileUtil;
 import com.chineseall.util.base.httpclient.HttpClientUtil;
 import com.chineseall.util.base.httpclient.HttpUtil;
@@ -17,12 +17,10 @@ import java.net.URLEncoder;
  * Created by zacky on 17:07.
  */
 public class BaiduApiUtil {
-    private static final String clientId = "ZHpGY8jpxWTpm2otFfUFt3MZ";
-    private static final String clientSecret = "wNX22SqzECzzlDp20vVEmfmBEQbhbPbW";
 
     static Logger logger = LoggerFactory.getLogger(BaiduApiUtil.class);
 
-    public static String accessToken() {
+    public static String accessToken(String clientId, String clientSecret) {
         String url = "https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=clientId" +
                 "&client_secret=clientSecret";
         JSONObject jsonObject = HttpClientUtil.httpGet(url.replace("clientId", clientId).replace("clientSecret",

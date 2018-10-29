@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xml:lang="zh-TW" lang="zh-TW"
+      th:with="cbdbURL='https://www.inindex.cn', version='1537264707394'">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript">
+        var basePath = '[[${#httpServletRequest.getContextPath()}]]';
+        var cbdbURL = '[[${cbdbURL}]]';
+        top.window.location.href = cbdbURL;
+    </script>
+</head>
